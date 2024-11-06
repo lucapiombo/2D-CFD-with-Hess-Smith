@@ -5,4 +5,4 @@ The project has been implemented for personal porpuse and has not been yet optim
 
 The code is divided in different main for different cases, you have a test for a single airfoil, another of a tandem configuration and the final for the tandem and the ground effect. Finally are provided two additional main for getting the angle of attach curves.
 
- 
+Some .txt files are provided, coming direclty from XFLR5 where you can check the correctness of the code which match the data.
