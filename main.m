@@ -1,5 +1,6 @@
 %% Set-up inputs
 clc,clear,close
+addpath('functions');
 
 % --------- Airfoil Inputs: ---------
 %AIRFOIL:
@@ -28,6 +29,7 @@ axis equal
 legend('panels','control points')
 hold off
 
+
 %% Evaluation flow paramiters
 
 % Compute coefficients due to panels induced velocities (source and vortex):
@@ -48,12 +50,14 @@ solution = A\b;
 q = solution(1:nPanels);
 gamma = solution(end);
 
+
 %% Visualize results on velocity
-% ----- Plot settings: --------
+
+% --------- Plot settings: ---------
 xLim=[-0.5, 2.5];
 yLim=[-1,1];
-mSize = 100;
-nLines = 20;
+mSize = 300;
+nLines = 40;
 
 % discretization
 xm = linspace(xLim(1), xLim(2), mSize);
@@ -143,7 +147,9 @@ ylim(yLim)
 grid off;
 hold off;
 
+
 %% Visualize results on coefficients
+
 [velSource, velVortex] = computeVelocityField(velocities, gamma, q);
 [Cp,Cl,Cm_LE] = computeAeroCoeffs(airfoil, velSource, velVortex, U_infinity, alpha, c);
 fprintf("Lift coefficient: %d\n",Cl)
@@ -153,12 +159,14 @@ if NACA4 == 0012 & (AoA == deg2rad(2.5) || AoA == deg2rad(0))
     fprintf('\nValidation data available, check the plots...\n')
 
     if AoA == deg2rad(2.5)
-        XFLR5 = load('0012_2.5deg.txt');
+        validFile = fullfile("data","0012_2.5deg.txt");
     elseif AoA == deg2rad(0)
-        XFLR5 = load('0012_0deg.txt');
+        validFile = fullfile("data","0012_0deg.txt");
     else
         warning('\n\nNo available data for validation!!!\n\n')
     end
+
+    XFLR5 = load(validFile);
 
     Cp_xef = XFLR5(:,2);
     x_xef = XFLR5(:,1);

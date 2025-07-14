@@ -1,28 +1,28 @@
 %% Set-up inputs
 clc,clear,close
+addpath('functions');
 
 % --------- Flow paramiters Inputs: ---------
 U_infinity = 1; %Velocity of the streamflow
 alpha = 0;      %Angle of the stream flow
 
-
 % --------- Airfoil Inputs: ---------
 %AIRFOIL 1:
 nPanels(1) = 100;        % Number of panels
-NACA4(1) = 3310;        % NACA airfoil denomination ( 4 digit: XXXX )
+NACA4(1) = 0012;        % NACA airfoil denomination ( 4 digit: XXXX )
 c(1) = 1;               %chord of main element
 AoA(1) = deg2rad(0);  %Angle of attack (deg)
 
 %AIRFOIL 2:
 nPanels(2) = 100;        % Number of panels
-NACA4(2) = 0012;        % NACA airfoil denomination ( 4 digit: XXXX )
+NACA4(2) = 3312;        % NACA airfoil denomination ( 4 digit: XXXX )
 c(2) = 0.4;             %chord of main element
-AoA(2) = deg2rad(5);    %Angle of attack (deg)
-
+AoA(2) = deg2rad(2.5);    %Angle of attack (deg)
 
 % --------- Airfoil position: ---------
 x12 = 1.1; %distance between two airfoils
 y12 = 0.1; %height between two airfoils
+
 
 %% Build airfoil
 
@@ -42,7 +42,6 @@ for i = 1:2
     end
 
     % show airfoil geometry:
-    
     hold on
     plot(airfoils(i).x, airfoils(i).y)
     plot(airfoils(i).x_c, airfoils(i).y_c,'x')
@@ -64,8 +63,7 @@ for i = 1:2 % targetFoil
     end
 end
 
-% Build and solve the linear sistem 
-
+% Build and solve the linear sistem
 A = zeros(nPanels(1)+nPanels(2)+2,nPanels(1)+nPanels(2)+2);
 
 %Build up the system:
@@ -88,11 +86,12 @@ gamma(2) = solution(end);                   %Rear Airfoil
 
 
 %% Visualize results on velocity
-% ----- Plot settings: --------
-xLim=[-0.5, 2.5];
+
+% --------- Plot settings: ---------
+xLim=[-0.5, 1.2];
 yLim=[-1,1];
-mSize = 500;
-nLines = 20;
+mSize = 400;
+nLines = 40;
 
 % discretization
 xm = linspace(xLim(1), xLim(2), mSize);
@@ -196,15 +195,20 @@ ylim(yLim)
 grid off;
 hold off;
 
+
 %% Visualize results on coefficients
 
-[velSource11, velVortex11] = computeVelocityField(velocities(1,1), gamma(1), q(:,1));
-[velSource12, velVortex12] = computeVelocityField(velocities(1,2), gamma(2), q(:,2));
-[velSource21, velVortex21] = computeVelocityField(velocities(2,1), gamma(1), q(:,1));
-[velSource22, velVortex22] = computeVelocityField(velocities(2,2), gamma(2), q(:,2));
-velSource = velSource11 + velSource12 + velSource21 + velSource22;
-velVortex = velVortex11 + velVortex12 + velVortex21 + velVortex22;
+Cp = zeros(2, nPanels(1));
+Cl = zeros(1,2);
+Cm_LE = zeros(1,2);
+
 for i = 1:2
+    [velSource_i1, velVortex_i1] = computeVelocityField(velocities(i,1), gamma(1), q(:,1));
+    [velSource_i2, velVortex_i2] = computeVelocityField(velocities(i,2), gamma(2), q(:,2));
+    
+    velSource = velSource_i1 + velSource_i2;
+    velVortex = velVortex_i1 + velVortex_i2;
+
     [Cp(i,:),Cl(i),Cm_LE(i)] = computeAeroCoeffs(airfoils(i), velSource, velVortex, U_infinity, alpha, c(i));
     fprintf("Lift coefficient of airfoil %d: %d\n",i, Cl(i))
     fprintf("Moment coefficient w.r.t. leading edge of airfoil %d:: %d\n",i, Cm_LE(i))

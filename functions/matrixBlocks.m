@@ -1,6 +1,6 @@
 function blocks = matrixBlocks(triggerFoil, velocities, U_infinity, alpha)
     % Computes influence coefficients for source and vortex panels
-
+    
     [nPoints, nPanels] = size(velocities.U_s);
     n_hat = [-sin(triggerFoil.beta)', cos(triggerFoil.beta)'];
     t_hat = [cos(triggerFoil.beta)', sin(triggerFoil.beta)'];

@@ -1,29 +1,28 @@
 %% Set-up inputs
 clc,clear,close
+addpath('functions');
 
 % --------- Flow paramiters Inputs: ---------
 U_infinity = 1; %Velocity of the streamflow
 alpha = 0;      %Angle of the stream flow
 
-
 % --------- Airfoil Inputs: ---------
 %AIRFOIL 1:
-nPanels(1) = 50;       % Number of panels
-NACA4(1) = 3310;        % NACA airfoil denomination ( 4 digit: XXXX )
+nPanels(1) = 100;        % Number of panels
+NACA4(1) = 0012;        % NACA airfoil denomination ( 4 digit: XXXX )
 c(1) = 1;               %chord of main element
-AoA(1) = deg2rad(0);    %Angle of attack (deg)
+AoA(1) = deg2rad(0);  %Angle of attack (deg)
 
 %AIRFOIL 2:
-nPanels(2) = 40;       % Number of panels
+nPanels(2) = 100;        % Number of panels
 NACA4(2) = 3312;        % NACA airfoil denomination ( 4 digit: XXXX )
 c(2) = 0.4;             %chord of main element
-AoA(2) = deg2rad(5);    %Angle of attack (deg)
-
+AoA(2) = deg2rad(2.5);    %Angle of attack (deg)
 
 % --------- Airfoil position: ---------
-h = 0.8;    %heigth of the first airfoil
+h = 0.2;    %heigth of the first airfoil
 x12 = 1.1;  %distance between two airfoils
-y12 = 0.5;  %height between two airfoils
+y12 = 0.1;  %height between two airfoils
 
 %% Build airfoil
 
@@ -40,26 +39,31 @@ for i = 1:2
     
     % Adjust airfoil 2 position
     elseif i == 2
-        fprintf(i)
         airfoils(i).y = airfoils(i).y + (y12 + h);
         airfoils(i).x = airfoils(i).x + x12;
         airfoils(i).y_c = airfoils(i).y_c + (y12 + h);
         airfoils(i).x_c = airfoils(i).x_c + x12; 
     end
 
-    %Images foils:
-    airfoils(i).x_symm = airfoils(i).x;
-    airfoils(i).y_symm = -airfoils(i).y;
-    airfoils(i).x_c_symm = airfoils(i).x_c;
-    airfoils(i).y_c_symm = -airfoils(i).y_c;
-
     % show airfoil geometry:
     hold on
     plot(airfoils(i).x, airfoils(i).y)
     plot(airfoils(i).x_c, airfoils(i).y_c,'x')
-    plot(airfoils(i).x_symm, airfoils(i).y_symm)
-    plot(airfoils(i).x_c_symm, airfoils(i).y_c_symm,'x')
 end
+
+% Add images foils:
+for i = 1:2
+    symm_foil(i).x = airfoils(i).x;
+    symm_foil(i).y = -airfoils(i).y;
+    symm_foil(i).x_c = airfoils(i).x_c;
+    symm_foil(i).y_c = -airfoils(i).y_c;
+    symm_foil(i).beta = airfoils(i).beta;
+    symm_foil(i).l_panel = airfoils(i).l_panel;
+
+    plot(symm_foil(i).x, symm_foil(i).y)
+    plot(symm_foil(i).x_c, symm_foil(i).y_c,'x')
+end
+yline(0, 'k-', 'LineWidth', 2);
 grid on
 axis equal
 legend('panels','control points')
@@ -72,12 +76,19 @@ hold off
 for i = 1:2 % targetFoil
     for j= 1:2 % triggerFoil
         velocities(i,j) = inducedSpeeds(airfoils(i), airfoils(j));
-        coeffs(i,j) = matrixBlocks(airfoils(j), velocities(i,j), U_infinity, alpha);
+        real_coeffs(i,j) = matrixBlocks(airfoils(j), velocities(i,j), U_infinity, alpha);
+
+        symm_velocities(i,j) = inducedSpeeds(airfoils(i), symm_foil(j));
+        symm_coeffs(i,j) = matrixBlocks(symm_foil(j), symm_velocities(i,j), U_infinity, alpha);
+
+        coeffs(i,j).A_s = real_coeffs(i,j).A_s + symm_coeffs(i,j).A_s;
+        coeffs(i,j).a_v = real_coeffs(i,j).a_v - symm_coeffs(i,j).a_v;
+        coeffs(i,j).c_s = real_coeffs(i,j).c_s + symm_coeffs(i,j).c_s;
+        coeffs(i,j).c_v = real_coeffs(i,j).c_v - symm_coeffs(i,j).c_v;
     end
 end
 
 % Build and solve the linear sistem 
-
 A = zeros(nPanels(1)+nPanels(2)+2,nPanels(1)+nPanels(2)+2);
 
 %Build up the system:
@@ -89,7 +100,7 @@ A(1:nPanels(1),end-1:end) = [coeffs(1,1).a_v, coeffs(1,2).a_v];
 A((nPanels(1)+1):end-2,end-1:end) = [coeffs(2,1).a_v, coeffs(2,2).a_v];
 A(end-1:end,1:end-2) = [coeffs(1,1).c_s, coeffs(1,2).c_s; coeffs(2,1).c_s, coeffs(2,2).c_s];
 A(end-1:end,end-1:end) = [coeffs(1,1).c_v, coeffs(1,2).c_v; coeffs(2,1).c_v, coeffs(2,2).c_v];
-b = [coeffs(1,1).b_s; coeffs(2,2).b_s; coeffs(1,1).b_v; coeffs(2,2).b_v];
+b = [real_coeffs(1,1).b_s; real_coeffs(2,2).b_s; real_coeffs(1,1).b_v; real_coeffs(2,2).b_v];
 
 %Define the solution:
 solution = A\b;
@@ -100,11 +111,12 @@ gamma(2) = solution(end);                   %Rear Airfoil
 
 
 %% Visualize results on velocity
+
 % ----- Plot settings: --------
 xLim=[-0.5, 2.5];
-yLim=[-1,1];
-mSize = 500;
-nLines = 20;
+yLim=[0,2];
+mSize = 100;
+nLines = 40;
 
 % discretization
 xm = linspace(xLim(1), xLim(2), mSize);
@@ -126,12 +138,24 @@ for i = 1:length(xm)
         
         speeds1 = inducedSpeeds(target, airfoils(1));
         speeds2 = inducedSpeeds(target, airfoils(2));
+        speeds_symm1 = inducedSpeeds(target, symm_foil(1));
+        speeds_symm2 = inducedSpeeds(target, symm_foil(2));
+        
         [velSource1, velVortex1] = computeVelocityField(speeds1, gamma(1), q(:,1));
         [velSource2, velVortex2] = computeVelocityField(speeds2, gamma(2), q(:,2));
+        [velSource_symm1, velVortex_symm1] = computeVelocityField(speeds_symm1, gamma(1), q(:,1));
+        [velSource_symm2, velVortex_symm2] = computeVelocityField(speeds_symm2, gamma(2), q(:,2));
 
-        vel_U(i,j) = velSource1(1)+velVortex1(1)+velSource2(1)+velVortex2(1)+U_infinity*cos(alpha);
-        vel_V(i,j) = velSource1(2)+velVortex1(2)+velSource2(2)+velVortex2(2)+U_infinity*sin(alpha);
-
+        vel_U(i,j) = velSource1(1)+velVortex1(1)+ ...
+                     velSource2(1)+velVortex2(1)+ ...
+                     velSource_symm1(1) - velVortex_symm1(1)+ ...
+                     velSource_symm2(1) - velVortex_symm2(1)+ ...
+                     U_infinity*cos(alpha);
+        vel_V(i,j) = velSource1(2)+velVortex1(2)+ ...
+                     velSource2(2)+velVortex2(2)+ ...
+                     velSource_symm1(2) - velVortex_symm1(2)+ ...
+                     velSource_symm2(2) - velVortex_symm2(2)+ ...
+                     U_infinity*sin(alpha);
     end
 end
 vel_U(airfoil_mask==0) = NaN;
@@ -208,15 +232,22 @@ ylim(yLim)
 grid off;
 hold off;
 
+
 %% Visualize results on coefficients
 
-[velSource11, velVortex11] = computeVelocityField(velocities(1,1), gamma(1), q(:,1));
-[velSource12, velVortex12] = computeVelocityField(velocities(1,2), gamma(2), q(:,2));
-[velSource21, velVortex21] = computeVelocityField(velocities(2,1), gamma(1), q(:,1));
-[velSource22, velVortex22] = computeVelocityField(velocities(2,2), gamma(2), q(:,2));
-velSource = velSource11 + velSource12 + velSource21 + velSource22;
-velVortex = velVortex11 + velVortex12 + velVortex21 + velVortex22;
+Cp = zeros(2, nPanels(1));
+Cl = zeros(1,2);
+Cm_LE = zeros(1,2);
+
 for i = 1:2
+    [velSource_i1, velVortex_i1] = computeVelocityField(velocities(i,1), gamma(1), q(:,1));
+    [velSource_i2, velVortex_i2] = computeVelocityField(velocities(i,2), gamma(2), q(:,2));
+    [velSource_isymm1, velVortex_isymm1] = computeVelocityField(symm_velocities(i,1), gamma(1), q(:,1));
+    [velSource_isymm2, velVortex_isymm2] = computeVelocityField(symm_velocities(i,2), gamma(2), q(:,2));
+    
+    velSource = velSource_i1 + velSource_i2 + velSource_isymm1 + velSource_isymm2;
+    velVortex = velVortex_i1 + velVortex_i2 - velVortex_isymm1 - velVortex_isymm2;
+    
     [Cp(i,:),Cl(i),Cm_LE(i)] = computeAeroCoeffs(airfoils(i), velSource, velVortex, U_infinity, alpha, c(i));
     fprintf("Lift coefficient of airfoil %d: %d\n",i, Cl(i))
     fprintf("Moment coefficient w.r.t. leading edge of airfoil %d:: %d\n",i, Cm_LE(i))
