@@ -2,29 +2,55 @@
 
 [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=lucapiombo/2D-CFD-with-Hess-Smith)
 
-This project presents a numerical methodology based on the Hess-Smith panel method for a comprehensive analysis of two airfoils arranged in a tandem configuration. The investigation examines the intricate interplay between the airfoils, including the effects of ground proximity. The numerical method is implemented in MATLAB, and its results are validated using XFLR5.
+This MATLAB project implements a numerical methodology based on the **Hess-Smith panel method** for analyzing the aerodynamic behavior of two airfoils arranged in a tandem configuration. The study investigates the aerodynamic interaction between the airfoils, including the influence of ground proximity (*ground effect*).  
+The numerical results are validated against benchmark data exported from **XFLR5**.
 
-**Note:**  
-This project was developed for personal purposes and has not yet been fully optimized or organized. Please consider it as a reference for panel method development.
+An exmple of the output is shown below:
+![Alt text](results/tandemGround.png)
 
-## Project Structure
-
-The code is organized into several main scripts corresponding to different cases:
-- **Single Airfoil Test:** A simulation for a single airfoil.
-- **Tandem Configuration:** A simulation for two airfoils arranged in tandem.
-- **Tandem with Ground Effect:** A simulation that also considers the ground effect.
-- **Angle of Attack Curves:** Additional scripts to generate angle of attack curves.
-
-## Data Files
-
-Several `.txt` files are provided, directly exported from XFLR5. These files allow you to verify the accuracy of the code by comparing the computed results with the XFLR5 data.
-
-## Getting Started
-
-1. Clone this repository.
-2. Open MATLAB and navigate to the project directory.
-3. Run the appropriate main script for the simulation you wish to explore.
+> **Note:**  
+> This code was developed for personal learning and demonstration purposes. It has not been fully optimized and should be treated as a reference for panel method implementation.
 
 ---
 
-Feel free to modify or extend this code for further research or development purposes!
+## 📂 Project Structure
+
+The repository is organized as follows:
+
+- **Main Scripts**
+  - `mainSingle.m`: Single airfoil test case.
+  - `mainTandem.m`: Tandem configuration (two airfoils).
+  - `mainTandemGround.m`: Tandem configuration with ground effect.
+- **`functions/`**: Reusable MATLAB functions implementing core numerical routines.
+- **`data/`**: Contains validation `.txt` files exported from XFLR5.
+- **`results/`** (optional): Generated output files and plots (if saved).
+
+---
+
+## 📊 Validation Data
+
+The `data/` folder includes `.txt` files with pressure coefficient data for validation, corresponding to:
+- NACA 0012 airfoil
+- Angles of attack: 0° and 2.5°
+
+You can compare your computed results to these XFLR5 datasets to verify accuracy.
+
+---
+
+## 🚀 Getting Started
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/lucapiombo/2D-CFD-with-Hess-Smith.git
+   
+---
+
+##🤝 Contributing
+Feel free to fork this repository and modify or extend the code for your own research or learning.
+If you find issues or have suggestions for improvement, please open an issue or submit a pull request.
+
+---
+
+## 📄 Licence
+This project is licensed under the **MIT License**.  
+See the [LICENSE](LICENSE) file for details.

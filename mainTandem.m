@@ -88,7 +88,7 @@ gamma(2) = solution(end);                   %Rear Airfoil
 %% Visualize results on velocity
 
 % --------- Plot settings: ---------
-xLim=[-0.5, 1.2];
+xLim=[-0.5, 1.5];
 yLim=[-1,1];
 mSize = 400;
 nLines = 40;
