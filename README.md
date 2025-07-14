@@ -45,11 +45,9 @@ You can compare your computed results to these XFLR5 datasets to verify accuracy
    
 ---
 
-##🤝 Contributing
+## 🤝 Contributing
 Feel free to fork this repository and modify or extend the code for your own research or learning.
 If you find issues or have suggestions for improvement, please open an issue or submit a pull request.
-
----
 
 ## 📄 Licence
 This project is licensed under the **MIT License**.  
