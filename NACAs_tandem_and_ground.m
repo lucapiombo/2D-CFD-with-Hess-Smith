@@ -63,7 +63,6 @@ m(2) = 1/100*floor(airfoil(2)/1000); %maximum camber of main element:
 p(2) = floor((airfoil(2)-100*m(2)*1000)/100)/10; %location of the maximum camber of main element:
 t(2) = c(2)*(airfoil(2) - p(2)*10*100 - m(2)*100*1000)/100; %associated thickness:
 
-
 %Initialization vectors
 N = max(n);
 x = zeros(2,N+1);
